@@ -18,6 +18,11 @@ app.config.update(
         "DATABASE": app.root_path / "data.db",
     }
 )
+
+if not app.config.get("SECRET_KEY"):
+    # This is NOT part of the challenge
+    app.config.update({"SECRET_KEY": "verysafekey"})
+
 if not app.config.get("HOST"):
     app.config.update({"HOST": "http://127.0.0.1:8000"})
 
@@ -54,14 +59,18 @@ async def index():
     db = await get_db()
 
     app.logger.info("Fetching all jobs")
-    cur = await db.execute("SELECT url, valid FROM job")
-    result = await cur.fetchall()
+    if user := session.get("username"):
+        cur = await db.execute("SELECT url, valid FROM job WHERE user = ?", (user,))
+        result = await cur.fetchall()
+    else:
+        result = []
     return await render_template("index.html", jobs=result)
 
 
 @app.post("/new")
 async def post():
-    if not session.get("username"):
+    user = session.get("username")
+    if not user:
         await flash("You need to be logged in")
         return redirect(url_for("login", next="/"))
 
@@ -76,7 +85,10 @@ async def post():
     app.logger.info("Inserting job")
     db = await get_db()
     cur = await db.cursor()
-    cur = await cur.execute("INSERT INTO job(url, valid) VALUES (?, ?)", (url, 1))
+    cur = await cur.execute(
+        "INSERT INTO job(url, valid, user) VALUES (?, ?, ?)",
+        (url, 1, user),
+    )
     await db.commit()
 
     app.logger.info("Creating background task")
