@@ -1,0 +1,33 @@
+
+version: '3'
+services:
+  chrome:
+    image: zenika/alpine-chrome:with-puppeteer
+    command: [chromium-browser, "--headless", "--disable-gpu", "--no-sandbox", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=3000"]
+    ports:
+      - "3000"
+    networks:
+      net:
+        ipv4_address: 10.5.0.5
+
+  server:
+    build:
+      context: .
+    ports:
+      - '8000:8000'
+    depends_on:
+      - 'chrome'
+    networks:
+      net:
+        ipv4_address: 10.5.0.6
+    restart: always
+    environment:
+      QUART_BROWSER_URL: http://10.5.0.5:3000
+      QUART_HOST: http://10.5.0.6:8000
+  
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16

@@ -5,14 +5,23 @@ from quart import current_app, request
 from pyppeteer import launch, connect
 from pyppeteer.page import Page
 from pyppeteer.errors import PageError
+import aiohttp
 
-with open(Path(__file__).parent / "flag", mode="r") as f:
+with open(Path.cwd() / "flag", mode="r") as f:
     flag = f.read()
+
+
+async def get_ws_url(endpoint: str):
+    async with aiohttp.ClientSession() as session:
+        res = await session.get(endpoint + "/json/version")
+        res_json = await res.json()
+        return res_json["webSocketDebuggerUrl"]
 
 
 async def get_browser():
     if not hasattr(current_app, "browser"):
-        if ws_url := current_app.config.get("BROWSER_URL"):
+        if browser_url := current_app.config.get("BROWSER_URL"):
+            ws_url = await get_ws_url(browser_url)
             current_app.browser = await connect(browserWSEndpoint=ws_url)
         else:
             current_app.browser = await launch(headless=False)
@@ -33,7 +42,7 @@ async def goto_url(page: Page, url: str):
     await asyncio.sleep(1)
 
     is_login_page = await page.querySelector("#loginForm")
-    if verify_url(request.url) and is_login_page:
+    if verify_url(url) and is_login_page:
         username_field = await page.querySelector("#username")
         await username_field.type("bob")
 
@@ -66,7 +75,7 @@ async def validate_url(url: str, job_id: int):
         status = 0
 
     # Go to admin panel
-    await goto_url(page, request.host_url + "/admin")
+    await goto_url(page, current_app.config["HOST"] + "/admin")
 
     # Let's submit
     current_app.logger.info("Finding form")

@@ -14,12 +14,12 @@ app = Quart(__name__)
 app.config.from_prefixed_env()
 app.config.update(
     {
-        "VERIFIED_DOMAIN": ["rorre.xyz", "127.0.0.1", "localhost"],
+        "VERIFIED_DOMAIN": ["rorre.xyz", "127.0.0.1", "localhost", "10.5.0.6"],
         "DATABASE": app.root_path / "data.db",
-        # Challenge note: you are not supposed to play around with the session
-        "SECRET_KEY": "verysecret",
     }
 )
+if not app.config.get("HOST"):
+    app.config.update({"HOST": "http://127.0.0.1:8000"})
 
 
 @app.before_serving
@@ -38,10 +38,10 @@ async def create_db_pool():
 def init_db():
     """Create an empty database."""
     db = connect_db(app.config["DATABASE"])
-    with open(Path(__file__).parent / "schema.sql", mode="r") as file_:
+    with open(Path.cwd() / "schema.sql", mode="r") as file_:
         db.cursor().executescript(file_.read())
 
-    with open(Path(__file__).parent / "flag", mode="r") as f:
+    with open(Path.cwd() / "flag", mode="r") as f:
         username = "bob"
         password = f.read()
         register_user_sync(db, username, password)
