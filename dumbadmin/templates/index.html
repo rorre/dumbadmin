@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if session.username %}
+<form action="/new" method="post">
+    <input type="url" name="url" placeholder="URL to validate" />
+    <button type="submit">Submit</button>
+</form>
+{% endif %}
+
+<table>
+    <tr>
+        <th>Link</th>
+        <th>Valid</th>
+    </tr>
+    {% for job in jobs %}
+    <tr>
+        <td>{{ job.url }}</td>
+        <td>
+            {% if job.valid == 1 %}
+                In progress
+            {% elif job.valid == 2 %}
+                Valid
+            {% else %}
+                Invalid
+            {% endif %}
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="2">No jobs</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

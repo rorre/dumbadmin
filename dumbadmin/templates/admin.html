@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<table>
+    <tr>
+        <th>Link</th>
+        <th>Valid</th>
+        <th>Action</th>
+    </tr>
+    {% for job in jobs %}
+    <tr>
+        <td>{{ job.url }}</td>
+        <td>
+            {% if job.valid == 1 %}
+                In progress
+            {% elif job.valid == 2 %}
+                Valid
+            {% else %}
+                Invalid
+            {% endif %}
+        </td>
+        <td>
+            <form action="/{{ job.id }}/set" method="POST" id="form{{ job.id }}">
+                <input type="radio" id="error" name="valid" value="0">
+                <label for="error">Error</label>
+
+                <input type="radio" id="progress" name="valid" value="1">
+                <label for="progress">In Progress</label>
+
+                <input type="radio" id="done" name="valid" value="2">
+                <label for="done">Done</label>
+
+                <button type="submit">Set</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="3">No jobs</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
