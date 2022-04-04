@@ -48,7 +48,7 @@ def init_db():
 
     with open(Path.cwd() / "flag", mode="r") as f:
         username = "bob"
-        password = f.read()
+        password = f.read().strip()
         register_user_sync(db, username, password)
 
     db.commit()
@@ -164,6 +164,9 @@ async def login():
         return await render_template("login.html")
 
     app.logger.info("Checking password hash")
+    app.logger.info(result["password"])
+    app.logger.info(password)
+    app.logger.info(pbkdf2_sha256.verify(password, result["password"]))
     if not pbkdf2_sha256.verify(password, result["password"]):
         await flash("Invalid username/password")
         return await render_template("login.html")

@@ -8,7 +8,7 @@ from pyppeteer.errors import PageError
 import aiohttp
 
 with open(Path.cwd() / "flag", mode="r") as f:
-    flag = f.read()
+    flag = f.read().strip()
 
 
 async def get_ws_url(endpoint: str):
