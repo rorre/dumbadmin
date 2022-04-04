@@ -11,6 +11,7 @@ import re
 VALID_USERNAME_PATTERN = re.compile(r"[A-Za-z0-9_]+")
 
 app = Quart(__name__)
+app.config.from_prefixed_env()
 app.config.update(
     {
         "VERIFIED_DOMAIN": ["rorre.xyz", "127.0.0.1", "localhost"],

@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 import traceback
 from quart import current_app, request
-from pyppeteer import launch
+from pyppeteer import launch, connect
 from pyppeteer.page import Page
 from pyppeteer.errors import PageError
 
@@ -12,7 +12,10 @@ with open(Path(__file__).parent / "flag", mode="r") as f:
 
 async def get_browser():
     if not hasattr(current_app, "browser"):
-        current_app.browser = await launch(headless=False)
+        if ws_url := current_app.config.get("BROWSER_URL"):
+            current_app.browser = await connect(browserWSEndpoint=ws_url)
+        else:
+            current_app.browser = await launch(headless=False)
     return current_app.browser
 
 
